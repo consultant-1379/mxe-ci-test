@@ -1,0 +1,53 @@
+def SLAVE_NODE = null
+
+node(label: 'docker') {
+    stage('Nominating build node') {
+        SLAVE_NODE = "${NODE_NAME}"
+        echo "Executing build on ${SLAVE_NODE}"
+    }
+}
+
+pipeline {
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '200', artifactNumToKeepStr: '30'))
+    }
+
+    agent {
+        node {
+            label "${SLAVE_NODE}"
+        }
+    }
+
+    environment {
+        GIT_AUTHOR_NAME = "mxecifunc"
+        GIT_AUTHOR_EMAIL = "PDLMMECIMM@pdl.internal.ericsson.com"
+        GIT_COMMITTER_NAME = "${USER}"
+        GIT_COMMITTER_EMAIL = "${GIT_AUTHOR_EMAIL}"
+        GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GSSAPIAuthentication=no -o PubKeyAuthentication=yes"
+        GERRIT_CREDENTIALS_ID = 'gerrit-http-password-mxecifunc'
+    }
+
+    stages {
+
+        stage('Prepare') {
+            steps {
+                sshagent(credentials: ['ssh-key-mxecifunc']) {
+                    sh 'git clean -xdff'
+                    sh 'git submodule sync'
+                    sh 'git submodule update --init --recursive'
+                    sh './bob/bob --version'
+                }
+            }
+        }
+
+        stage('Prepare PRA offline installer package') {
+            steps {
+                withCredentials([
+                        string(credentialsId: 'arm-api-token-mxecifunc', variable: 'API_TOKEN'),
+                ]) {
+                    sh './bob/bob package-offline-images'
+                }
+            }
+        }
+    }
+}

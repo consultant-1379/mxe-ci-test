@@ -1,0 +1,60 @@
+modelVersion: 2.0
+
+docker-images:
+  - adp-release-auto: armdocker.rnd.ericsson.se/proj-adp-cicd-drop/bob-adp-release-auto:2.0.0-23
+  - k8s-test: armdocker.rnd.ericsson.se/proj-adp-cicd-drop/bob-py3kubehelmbuilder:latest
+
+
+env:
+  - PWD
+  - USER
+  - HOME
+  - KUBECONFIG (default=${env.HOME}/.kube/config)
+  - HELM_REPO_CREDENTIALS (default=${env.PWD}/resources/helm_credentials.yaml)
+  - API_TOKEN
+  - CHART_NAME (default=notset)
+  - CHART_VERSION (default=notset)
+  - CHART_REPO (default=notset)
+  - GOCACHE (default=${env.HOME}/.cache/go-build)
+  - GOPATH (default=${env.HOME}/go)
+  - MAVEN_REPO_LOCAL (default=${env.HOME}/.m2/repository)
+  - MXE_USER (default=mxe-user)
+  - MXE_PASSWORD (default=password)
+  - SYSTEM (default=hahn081)
+  - TESTMXEENDPOINT (default=https://mxe.hahn081.rnd.gic.ericsson.se:443)
+  - TESTDEPLOYERENDPOINT (default=https://mxe-deployer.hahn081.rnd.gic.ericsson.se)
+  - TESTDEPLOYERAUTHENDPOINT (default=https://oauth.mxe.hahn081.rnd.gic.ericsson.se)
+  - ARGOCD_KEYCLOAKADMIN_USER (default=argocd-admin)
+  - ARGOCD_KEYCLOAKADMIN_PASSWORD (default=admin-pass)
+  - TEST_BASE_VERSION (default=null)
+  - TEST_BASE_VALUES_YAML (default=values.yaml)
+  - TEST_BASE_VALUES_DIR (default=values)
+  - TEST_TARGET_VERSION (default=notset)
+  - TEST_SUITES_TO_RUN
+  - RELEASE (default=false)
+  - RELEASE_ARTIFACTS_FOLDER (default=release)
+  - RELEASE_CANDIDATE_VERSION
+  - RELEASE_VERSION
+  - NEXT_VERSION_PREFIX
+  - GITOPS_REPO (default=https://gitea.mxe.hahn081.rnd.gic.ericsson.se/mxe/mxe-gitops.git)
+  - VERSION_PREFIX_FILE (default=VERSION_PREFIX)
+  - ROBOT_REPORTS_DIR (default=${env.PWD}/mxe-test-reports)
+  - ROBOT_TESTS_DIR (default=${env.PWD}/mxe-test)
+  - TEST_DATA_DIR (default=${env.PWD}/mxe-test/testdata)
+  - GITHUB_TOKEN
+  - KEYCLOAK_USERNAME (default=admin)
+  - KEYCLOAK_PASSWORD (default=my-super-secret-pw)
+  - HELM_VERSION(default=3.8.1)
+  - RELEASE_BRANCH
+  - NAMESPACE (default=mxe-ci) 
+  - DEPLOYER_NAMESPACE (default=mxe-ci) 
+  - RELEASE_NAME (default=mxe-ci) 
+  - DEPLOYER_RELEASE_NAME (default=mxe-ci) 
+
+rules:
+  package-offline-images:
+    - task: generate-2pp-images-list
+      docker-image: mxe-toolkit
+      cmd: bash -c '
+        set -ex;
+        pipeline-scripts/get_2pp_images.sh' 
